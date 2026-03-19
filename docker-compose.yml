@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./proj/.env.docker
+    volumes:
+      - ./proj:/var/www
+      - sqlite_data:/var/www/database
+    depends_on:
+      - sqlite
+
+  # SQLite is file-based; this container exists to own the persistent volume.
+  sqlite:
+    image: alpine:3.20
+    command: ["sh", "-c", "mkdir -p /data && touch /data/database.sqlite && tail -f /dev/null"]
+    volumes:
+      - sqlite_data:/data
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite_data:/data:ro
+
+volumes:
+  sqlite_data:
+
